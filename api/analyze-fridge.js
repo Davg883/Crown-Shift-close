@@ -45,21 +45,48 @@ module.exports = async function handler(req, res) {
     const prompt = `
       You are an expert inventory manager for a premium British hotel pub called The Crown Hotel. Analyze this bar fridge image carefully.
       
-      Inventory Guidelines:
-      - The fridge type being scanned is: "${fridgeType}".
-      - Count only items visible that belong to this category.
-      - Based on a baseline row depth and maximum capacity layout, figure out exactly how many items are missing/needed to restock the fridge to full capacity.
+      Your goal is to determine how many items are missing/needed to restock the fridge to its maximum capacity.
       
-      Expected strictly matching item keys to output if missing:
-      Mixers & Softs keys: "Thatchers Zero", "Doom Bar Zero", "Old Mout Cider", "Diet Coke", "Coca-Cola", "Fanta", "Schweppes Tonic/Slimline", "Monster Energy (Original)", "Monster Energy (Punch)", "Monster Energy (Mango)", "Monster Energy (Ultra)"
-      Beer & Cider keys: "VK (Blue)", "VK (Ice)", "VK (Orange)", "Stella Artois", "Birra Moretti", "Desperados", "Old Speckled Hen", "Magners"
+      Here are the maximum capacities for each item type in a fully stocked fridge:
+      Mixers & Softs Fridge ("mixer"):
+      - "Thatchers Zero": Max Capacity = 6
+      - "Doom Bar Zero": Max Capacity = 6
+      - "Old Mout Cider": Max Capacity = 6
+      - "Diet Coke": Max Capacity = 10
+      - "Coca-Cola": Max Capacity = 10
+      - "Fanta": Max Capacity = 6
+      - "Schweppes Tonic/Slimline": Max Capacity = 12
+      - "Monster Energy (Original)": Max Capacity = 6
+      - "Monster Energy (Punch)": Max Capacity = 6
+      - "Monster Energy (Mango)": Max Capacity = 6
+      - "Monster Energy (Ultra)": Max Capacity = 6
 
-      Return ONLY a clean, valid JSON object mapping the exact string keys above to the integer quantity needed. Do not wrap the JSON in markdown code blocks or backticks. If the fridge is full or an item is fully stocked, return 0 for its value. Only include items relevant to the "${fridgeType}" fridge type.
+      Beer & Cider Fridge ("beer"):
+      - "VK (Blue)": Max Capacity = 8
+      - "VK (Ice)": Max Capacity = 8
+      - "VK (Orange)": Max Capacity = 8
+      - "Stella Artois": Max Capacity = 8
+      - "Birra Moretti": Max Capacity = 8
+      - "Desperados": Max Capacity = 8
+      - "Old Speckled Hen": Max Capacity = 6
+      - "Magners": Max Capacity = 6
+
+      Inventory Counting Rules:
+      1. ONLY analyze items for the fridge type specified: "${fridgeType}".
+      2. For each item in the list above:
+         - Estimate the number of bottles/cans CURRENTLY PRESENT (Visible in the front row + depth behind them).
+         - Calculate: Restock Needed = Max Capacity - Present Count.
+         - If a shelf row looks full/packed and you see bottles lining up to the front, the Present Count equals Max Capacity, so Restock Needed is 0.
+         - Do NOT return the number of visible bottles as the restock count. For example, if you see 3 bottles of Birra Moretti and the row is half-empty, the Present Count is 3, meaning Restock Needed is 5 (8 - 3 = 5). If the Birra Moretti row is completely full, Restock Needed is 0.
+         - If an item is completely missing from the fridge, Restock Needed is its full Max Capacity.
+      
+      Return ONLY a clean, valid JSON object mapping the exact string keys above to the integer quantity needed. Do not wrap the JSON in markdown code blocks or backticks.
       
       Example output:
       {
-        "Schweppes Tonic/Slimline": 2,
-        "Birra Moretti": 1
+        "Schweppes Tonic/Slimline": 0,
+        "Diet Coke": 2,
+        "Birra Moretti": 5
       }
     `;
 
