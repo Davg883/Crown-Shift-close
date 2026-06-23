@@ -1,0 +1,9 @@
+{
+  "name": "crown-hotel-closedown-app",
+  "version": "1.0.0",
+  "description": "Crown Hotel Nightly Closedown Checklist App",
+  "scripts": {
+    "start": "npx -y http-server -p 3000",
+    "dev": "npx -y http-server -p 3000"
+  }
+}

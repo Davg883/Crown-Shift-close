@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Outfit', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a; /* slate-900 */
+}
+::-webkit-scrollbar-thumb {
+  background: #334155; /* slate-700 */
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b89047; /* brass */
+}
+
+/* Signature canvas styling */
+#signature-canvas {
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* Brass gold custom classes */
+.text-brass {
+  color: #b89047;
+}
+
+.bg-brass {
+  background-color: #b89047;
+}
+
+.border-brass {
+  border-color: #b89047;
+}
+
+.hover\:bg-brass-dark:hover {
+  background-color: #a37f3b;
+}
+
+.focus\:ring-brass:focus {
+  --tw-ring-color: #b89047;
+}
+
+/* Accordion smooth transition */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.accordion-content.open {
+  max-height: 1000px;
+  transition: max-height 0.5s ease-in, padding 0.5s ease-in;
+}
+
+/* Checklist items animations and styling */
+.checklist-item {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.checklist-item.checked {
+  background-color: rgba(30, 41, 59, 0.4); /* slate-800/40 */
+  border-color: rgba(51, 65, 85, 0.4); /* slate-700/40 */
+}
+
+.checklist-item.checked label {
+  color: #64748b; /* slate-500 */
+  text-decoration: line-through;
+  text-decoration-color: rgba(184, 144, 71, 0.4); /* brass with opacity */
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+/* Custom check animation */
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.check-pop:checked {
+  animation: checkPop 0.3s ease-in-out;
+}
+
+/* Pulse animation for active progress bar */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 4px #b89047); }
+}
+
+.progress-glow {
+  animation: pulseGlow 2s infinite;
+}

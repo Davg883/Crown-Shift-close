@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Crown Hotel - Nightly Closedown App</title>
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brass: {
+              DEFAULT: '#b89047',
+              light: '#d2af67',
+              dark: '#9d7632',
+              soft: 'rgba(184, 144, 71, 0.15)',
+              gold: '#cda85f'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 flex flex-col min-h-full selection:bg-brass selection:text-slate-950">
+
+  <!-- Header & Sticky Progress Bar -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg px-4 py-3 flex flex-col gap-2">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <!-- Pub logo icon (vintage crown) -->
+        <svg class="w-6 h-6 text-brass" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L16.2 7H19V9L22 9V11L21.4 20H2.6L2 11V9L5 9V7H7.8L12 2M12 4.4L9.1 7.8H14.9L12 4.4M12 9.5C10.6 9.5 9.5 10.6 9.5 12C9.5 13.4 10.6 14.5 12 14.5C13.4 14.5 14.5 13.4 14.5 12C14.5 10.6 13.4 9.5 12 9.5M4 11V18H20V11H4Z"/>
+        </svg>
+        <div>
+          <h1 class="text-sm font-semibold tracking-wider text-brass uppercase">Crown Hotel</h1>
+          <p class="text-xs text-slate-400">Nightly Closing Checklist</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <span id="header-date" class="text-xs font-medium text-slate-300">Tuesday, 23 Jun 2026</span>
+        <div id="progress-percent" class="text-xs font-bold text-brass block">0% Complete</div>
+      </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+      <div id="header-progress" class="bg-gradient-to-r from-brass-dark via-brass to-brass-light h-full rounded-full w-0 transition-all duration-300 ease-out progress-glow"></div>
+    </div>
+  </header>
+
+  <!-- Main Scrollable Content -->
+  <main class="flex-1 max-w-xl w-full mx-auto p-4 pb-36 flex flex-col gap-6">
+    
+    <!-- Checklist Phases -->
+    <div id="checklist-container" class="flex flex-col gap-4">
+      <!-- Dynamic Checklist Content will be injected here by app.js -->
+      <div class="flex justify-center items-center py-12 text-slate-500">
+        <svg class="animate-spin h-8 w-8 text-brass mr-3" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Loading checklist items...</span>
+      </div>
+    </div>
+
+    <!-- Shift Compliance Disclaimer Panel -->
+    <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-3">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-brass border-b border-slate-800 pb-2 flex items-center gap-2">
+        <svg class="w-4 h-4 text-brass" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        Shift Compliance Disclaimer
+      </h2>
+      <div class="flex gap-3 items-start p-3 bg-slate-950/40 border border-slate-800/80 rounded-lg cursor-pointer select-none" id="disclaimer-row">
+        <div class="flex items-center h-5 mt-0.5">
+          <input type="checkbox" id="chk-disclaimer" class="check-pop w-5.5 h-5.5 rounded border-slate-700 bg-slate-900 text-brass focus:ring-brass focus:ring-offset-slate-950 focus:ring-2 accent-brass cursor-pointer">
+        </div>
+        <label for="chk-disclaimer" class="text-xs text-slate-300 leading-normal cursor-pointer select-none">
+          I confirm that I have completed my shift in its entirety. I certify that all drinks served during my shift have been properly processed and paid for. I am concluding my shift with a clear head and am in an appropriate state for the conditions of my role.
+        </label>
+      </div>
+    </section>
+
+    <!-- Verification & Signature Panel -->
+    <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4">
+      <h2 class="text-lg font-bold text-brass border-b border-slate-800 pb-2 flex items-center gap-2">
+        <svg class="w-5 h-5 text-brass" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-line-cap="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        Staff Verification
+      </h2>
+      
+      <!-- Staff Name Input -->
+      <div class="flex flex-col gap-1.5">
+        <label for="staff-name" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Staff Name / Signature Name</label>
+        <input type="text" id="staff-name" placeholder="Enter your full name" 
+          class="w-full bg-slate-950 border border-slate-800 focus:border-brass rounded-lg px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-brass transition-all">
+      </div>
+
+      <!-- Signature Draw Area -->
+      <div class="flex flex-col gap-1.5">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">Draw Your Signature</label>
+          <button id="clear-signature" class="text-xs text-rose-400 hover:text-rose-300 transition-colors uppercase tracking-wider font-semibold">Clear</button>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden relative">
+          <canvas id="signature-canvas" class="w-full h-36 bg-slate-950"></canvas>
+          <div id="signature-placeholder" class="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-600 text-xs">
+            Draw signature here using finger or mouse
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky Bottom Actions Bar -->
+  <footer class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-2xl p-4">
+    <div class="max-w-xl mx-auto flex gap-3">
+      <!-- Reset button -->
+      <button id="btn-reset" class="flex-none bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-300 font-semibold p-4 rounded-xl border border-slate-700 transition-all flex items-center justify-center" title="Reset Checklist">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </button>
+      
+      <!-- Primary Submission CTA Button -->
+      <button id="btn-submit" disabled 
+        class="flex-1 bg-gradient-to-r from-brass-dark via-brass to-brass-light hover:brightness-110 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none disabled:active:scale-100 text-slate-950 font-bold py-4 px-6 rounded-xl shadow-lg shadow-brass-soft transition-all flex items-center justify-center gap-2">
+        <span id="btn-text">Generate PDF & Open WhatsApp</span>
+        <svg id="btn-arrow" class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Submission/Success Modal Overlay -->
+  <div id="modal-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center gap-4">
+      <!-- Loading Spinner -->
+      <div id="modal-spinner" class="w-16 h-16 border-4 border-brass/25 border-t-brass rounded-full animate-spin"></div>
+      
+      <!-- Success Icon -->
+      <div id="modal-success-icon" class="w-16 h-16 bg-brass/10 border border-brass rounded-full flex items-center justify-center hidden">
+        <svg class="w-8 h-8 text-brass" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+
+      <h3 id="modal-title" class="text-lg font-bold text-slate-100 mt-2">Generating Report...</h3>
+      <p id="modal-desc" class="text-sm text-slate-400">Please wait while your closing-down report is compiled and download is triggered.</p>
+    </div>
+  </div>
+
+  <!-- Client-Side App Javascript -->
+  <script src="app.js"></script>
+</body>
+</html>
