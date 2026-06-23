@@ -1155,20 +1155,30 @@ function setupStockAndPhotoHandlers() {
         // Build parallel fetch requests for each uploaded fridge photo
         const requests = [];
         if (topImg) {
+          const mixerKeys = RESTOCK_ITEMS_CONFIG.find(c => c.category === "Mixers & Softs")?.items || [];
           requests.push(
             fetch("/api/analyze-fridge", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ image: topImg, fridgeType: "mixer" })
+              body: JSON.stringify({ 
+                image: topImg, 
+                fridgeType: "mixer",
+                currentUiKeys: mixerKeys
+              })
             }).then(r => r.json()).then(data => ({ type: "mixer", data }))
           );
         }
         if (beerImg) {
+          const beerKeys = RESTOCK_ITEMS_CONFIG.find(c => c.category === "Bottled Beers & Alcopops")?.items || [];
           requests.push(
             fetch("/api/analyze-fridge", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ image: beerImg, fridgeType: "beer" })
+              body: JSON.stringify({ 
+                image: beerImg, 
+                fridgeType: "beer",
+                currentUiKeys: beerKeys
+              })
             }).then(r => r.json()).then(data => ({ type: "beer", data }))
           );
         }
