@@ -96,3 +96,16 @@ body {
 .progress-glow {
   animation: pulseGlow 2s infinite;
 }
+
+/* Tactile count pulse animation */
+@keyframes countElastic {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); color: #b89047; } /* Temporary pop to brass accent */
+  100% { transform: scale(1); }
+}
+
+.count-pulse {
+  display: inline-block;
+  animation: countElastic 0.15s ease-in-out;
+}
+

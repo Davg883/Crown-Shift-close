@@ -295,65 +295,55 @@ function renderChecklist() {
       // Inject Fridge Stock & Photo Capture Component inside Phase 1
       if (phase.phaseId === 1) {
         const stockContainer = document.createElement("div");
-        stockContainer.className = "mt-4 p-4 bg-slate-950/70 border border-slate-800 rounded-lg flex flex-col gap-4";
+        stockContainer.className = "mt-5 flex flex-col gap-5";
         stockContainer.innerHTML = `
-          <h4 class="text-xs font-bold uppercase tracking-wider text-brass border-b border-slate-800 pb-2">Fridge Stock & Photo Capture</h4>
-          
-          <div class="grid grid-cols-2 gap-3">
+          <!-- Photo capture boxes stack vertically, taking up 100% width with strict height h-40 relative -->
+          <div class="flex flex-col gap-4">
             <!-- Top/Mixer Fridge Photo -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 leading-none">Top/Mixer Fridge</label>
-              <div id="preview-top-fridge" class="w-full h-24 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-lg flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-colors">
-                <div class="flex flex-col items-center justify-center text-slate-500 gap-1 p-2 text-center">
-                  <svg class="w-6 h-6 text-slate-500 group-hover:text-brass transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
-                  </svg>
-                  <span class="text-[9px] font-semibold tracking-wide uppercase leading-tight">Capture Mixer</span>
-                </div>
-                <input type="file" id="input-top-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
-                <img id="img-top-fridge" class="absolute inset-0 w-full h-full object-cover hidden">
-                <button type="button" id="btn-del-top-fridge" class="absolute top-1.5 right-1.5 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-1.5 hidden z-30 transition-transform active:scale-90 shadow-md">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
+            <div id="preview-top-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
+              <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
+                <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
+                </svg>
+                <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Top/Mixer Fridge</span>
               </div>
+              <input type="file" id="input-top-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+              <img id="img-top-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
+              <button type="button" id="btn-del-top-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
             </div>
             
             <!-- Lower/Beer Fridge Photo -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 leading-none">Lower/Beer Fridge</label>
-              <div id="preview-beer-fridge" class="w-full h-24 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-lg flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-colors">
-                <div class="flex flex-col items-center justify-center text-slate-500 gap-1 p-2 text-center">
-                  <svg class="w-6 h-6 text-slate-500 group-hover:text-brass transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
-                  </svg>
-                  <span class="text-[9px] font-semibold tracking-wide uppercase leading-tight">Capture Beer</span>
-                </div>
-                <input type="file" id="input-beer-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
-                <img id="img-beer-fridge" class="absolute inset-0 w-full h-full object-cover hidden">
-                <button type="button" id="btn-del-beer-fridge" class="absolute top-1.5 right-1.5 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-1.5 hidden z-30 transition-transform active:scale-90 shadow-md">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
+            <div id="preview-beer-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
+              <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
+                <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
+                </svg>
+                <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Lower/Beer Fridge</span>
               </div>
+              <input type="file" id="input-beer-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+              <img id="img-beer-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
+              <button type="button" id="btn-del-beer-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
             </div>
           </div>
 
           <!-- Quick-Tap Restock Grid -->
-          <div class="flex flex-col gap-2.5 mt-1">
-            <label class="text-xs font-semibold uppercase tracking-wider text-slate-300 leading-none">Quick-Tap Restock Grid</label>
-            <div id="restock-grid-container" class="flex flex-col gap-4"></div>
-          </div>
+          <div id="restock-grid-container" class="flex flex-col gap-6 mt-2"></div>
           
           <!-- Textarea shortages -->
-          <div class="flex flex-col gap-1.5">
-            <label for="restock-shortages" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Other Shortages / Miscellaneous Notes</label>
-            <textarea id="restock-shortages" rows="2" placeholder="e.g. Low on lemons, order lime cordial..."
-              class="w-full bg-slate-900 border border-slate-800 focus:border-brass rounded-lg px-3 py-2 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:ring-1 focus:ring-brass transition-all resize-none"></textarea>
+          <div class="flex flex-col gap-2 mt-2">
+            <label for="restock-shortages" class="text-xs font-bold uppercase tracking-wider text-slate-300">Other Shortages / Miscellaneous Notes</label>
+            <textarea id="restock-shortages" rows="3" placeholder="e.g. Low on lemons, order lime cordial..."
+              class="w-full bg-slate-900 border border-slate-800 focus:border-brass rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:ring-1 focus:ring-brass transition-all resize-none"></textarea>
           </div>
         `;
         accordionContent.appendChild(stockContainer);
@@ -1074,15 +1064,19 @@ function setupStockAndPhotoHandlers() {
   const storedTopFridgeImg = localStorage.getItem("crown_closedown_top_fridge_img") || localStorage.getItem("crown_closedown_back_bar_img");
   if (storedTopFridgeImg && imgTop && btnDelTop) {
     imgTop.src = storedTopFridgeImg;
-    imgTop.classList.remove("hidden");
-    btnDelTop.classList.remove("hidden");
+    imgTop.classList.remove("opacity-0", "scale-95", "pointer-events-none");
+    imgTop.classList.add("opacity-100", "scale-100", "pointer-events-auto");
+    btnDelTop.classList.remove("opacity-0", "scale-90", "pointer-events-none");
+    btnDelTop.classList.add("opacity-100", "scale-100", "pointer-events-auto");
   }
 
   const storedBeerFridgeImg = localStorage.getItem("crown_closedown_beer_fridge_img") || localStorage.getItem("crown_closedown_cellar_img");
   if (storedBeerFridgeImg && imgBeer && btnDelBeer) {
     imgBeer.src = storedBeerFridgeImg;
-    imgBeer.classList.remove("hidden");
-    btnDelBeer.classList.remove("hidden");
+    imgBeer.classList.remove("opacity-0", "scale-95", "pointer-events-none");
+    imgBeer.classList.add("opacity-100", "scale-100", "pointer-events-auto");
+    btnDelBeer.classList.remove("opacity-0", "scale-90", "pointer-events-none");
+    btnDelBeer.classList.add("opacity-100", "scale-100", "pointer-events-auto");
   }
 
   // Load shortages text
@@ -1117,31 +1111,31 @@ function renderRestockGrid() {
 
   RESTOCK_ITEMS_CONFIG.forEach(cat => {
     const catBlock = document.createElement("div");
-    catBlock.className = "flex flex-col gap-2";
+    catBlock.className = "flex flex-col gap-3";
     catBlock.innerHTML = `
-      <h5 class="text-[10px] font-bold uppercase tracking-wider text-brass border-l-2 border-brass/50 pl-1.5">${cat.category}</h5>
-      <div class="grid grid-cols-2 gap-2"></div>
+      <h5 class="text-xs font-extrabold uppercase tracking-widest text-brass border-l-2 border-brass pl-2 mt-2">${cat.category.toUpperCase()}</h5>
+      <div class="flex flex-col gap-3"></div>
     `;
 
-    const grid = catBlock.querySelector(".grid");
+    const listWrapper = catBlock.querySelector("div");
 
     cat.items.forEach(itemName => {
       const currentCount = restockCounts[itemName] || 0;
       const isActive = currentCount > 0;
 
       const itemCard = document.createElement("div");
-      itemCard.className = `flex items-center justify-between p-2 rounded-lg border transition-all ${
+      itemCard.className = `flex items-center justify-between p-5 rounded-xl border transition-all duration-300 ${
         isActive 
-          ? "bg-brass/5 border-brass/40 shadow-sm shadow-brass/5" 
-          : "bg-slate-900/60 border-slate-800/80"
+          ? "bg-brass/5 border-brass/50 shadow-md shadow-brass/5" 
+          : "bg-slate-900 border-slate-800"
       }`;
 
       itemCard.innerHTML = `
-        <span class="text-xs font-medium ${isActive ? "text-slate-100 font-semibold" : "text-slate-400"} max-w-[62%] leading-tight">${itemName}</span>
-        <div class="flex items-center gap-2 select-none">
-          <button type="button" class="btn-dec w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-400 font-bold flex items-center justify-center text-sm transition-transform cursor-pointer">-</button>
-          <span class="count-val text-xs font-bold w-4 text-center ${isActive ? "text-brass font-bold" : "text-slate-600"}">${currentCount}</span>
-          <button type="button" class="btn-inc w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-400 hover:text-brass font-bold flex items-center justify-center text-sm transition-transform cursor-pointer">+</button>
+        <span class="flex-1 min-w-0 pr-4 text-base md:text-lg font-bold ${isActive ? "text-slate-100" : "text-slate-300"} transition-colors duration-200 truncate">${itemName}</span>
+        <div class="flex items-center gap-4 select-none flex-none">
+          <button type="button" class="btn-dec w-14 h-14 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-black flex items-center justify-center text-2xl transition-all cursor-pointer" aria-label="Decrease count">-</button>
+          <span class="count-val inline-block text-2xl font-black w-10 text-center transition-all duration-200 ${isActive ? "text-brass scale-110" : "text-slate-500"}">${currentCount}</span>
+          <button type="button" class="btn-inc w-14 h-14 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-brass font-black flex items-center justify-center text-2xl transition-all cursor-pointer" aria-label="Increase count">+</button>
         </div>
       `;
 
@@ -1160,10 +1154,19 @@ function renderRestockGrid() {
           localStorage.setItem("crown_closedown_restock_counts", JSON.stringify(restockCounts));
           
           countVal.innerText = val;
+          
+          // Trigger Elastic Pulse feedback
+          countVal.classList.add("count-pulse");
+          setTimeout(() => {
+            countVal.classList.remove("count-pulse");
+          }, 150);
+
           if (val === 0) {
-            itemCard.className = "flex items-center justify-between p-2 rounded-lg border border-slate-800/80 bg-slate-900/60 transition-all";
-            countVal.className = "count-val text-xs font-bold w-4 text-center text-slate-600";
-            itemCard.querySelector("span").className = "text-xs font-medium text-slate-400 max-w-[62%] leading-tight";
+            itemCard.className = "flex items-center justify-between p-5 rounded-xl border border-slate-800 bg-slate-900 transition-all duration-300";
+            countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-slate-500 transition-all duration-200";
+            itemCard.querySelector("span").className = "flex-1 min-w-0 pr-4 text-base md:text-lg font-bold text-slate-300 transition-colors duration-200 truncate";
+          } else {
+            countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-brass scale-110 transition-all duration-200";
           }
           validateForm();
         }
@@ -1178,13 +1181,20 @@ function renderRestockGrid() {
         localStorage.setItem("crown_closedown_restock_counts", JSON.stringify(restockCounts));
 
         countVal.innerText = val;
-        itemCard.className = "flex items-center justify-between p-2 rounded-lg border border-brass/40 bg-brass/5 shadow-sm shadow-brass/5 transition-all";
-        countVal.className = "count-val text-xs font-bold w-4 text-center text-brass font-bold";
-        itemCard.querySelector("span").className = "text-xs font-medium text-slate-100 font-semibold max-w-[62%] leading-tight";
+        
+        // Trigger Elastic Pulse feedback
+        countVal.classList.add("count-pulse");
+        setTimeout(() => {
+          countVal.classList.remove("count-pulse");
+        }, 150);
+
+        itemCard.className = "flex items-center justify-between p-5 rounded-xl border border-brass/50 bg-brass/5 shadow-md shadow-brass/5 transition-all duration-300";
+        countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-brass scale-110 transition-all duration-200";
+        itemCard.querySelector("span").className = "flex-1 min-w-0 pr-4 text-base md:text-lg font-bold text-slate-100 transition-colors duration-200 truncate";
         validateForm();
       });
 
-      grid.appendChild(itemCard);
+      listWrapper.appendChild(itemCard);
     });
 
     container.appendChild(catBlock);
@@ -1234,10 +1244,12 @@ function bindImageUploader(inputEl, imgEl, delBtnEl, storageKey) {
           alert("Unable to save photo thumbnail in local cache. Storage might be full.");
         }
         
-        // Show in UI
+        // Show in UI with transition
         imgEl.src = compressedBase64;
-        imgEl.classList.remove("hidden");
-        delBtnEl.classList.remove("hidden");
+        imgEl.classList.remove("opacity-0", "scale-95", "pointer-events-none");
+        imgEl.classList.add("opacity-100", "scale-100", "pointer-events-auto");
+        delBtnEl.classList.remove("opacity-0", "scale-90", "pointer-events-none");
+        delBtnEl.classList.add("opacity-100", "scale-100", "pointer-events-auto");
       };
       img.src = event.target.result;
     };
@@ -1248,9 +1260,18 @@ function bindImageUploader(inputEl, imgEl, delBtnEl, storageKey) {
     e.stopPropagation();
     e.preventDefault();
     inputEl.value = "";
-    imgEl.src = "";
-    imgEl.classList.add("hidden");
-    delBtnEl.classList.add("hidden");
+    imgEl.classList.remove("opacity-100", "scale-100", "pointer-events-auto");
+    imgEl.classList.add("opacity-0", "scale-95", "pointer-events-none");
+    delBtnEl.classList.remove("opacity-100", "scale-100", "pointer-events-auto");
+    delBtnEl.classList.add("opacity-0", "scale-90", "pointer-events-none");
+    
+    // Clear src after transition ends to prevent empty flash
+    setTimeout(() => {
+      if (imgEl.classList.contains("opacity-0")) {
+        imgEl.src = "";
+      }
+    }, 300);
+    
     localStorage.removeItem(storageKey);
   });
 }
