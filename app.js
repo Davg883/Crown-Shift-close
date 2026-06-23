@@ -347,6 +347,17 @@ function renderChecklist() {
             <div id="scan-message" class="text-xs text-center text-slate-400 font-medium hidden"></div>
           </div>
 
+          <!-- Stock Needed Summary Panel (Live Updating) -->
+          <div id="stock-summary-panel" class="p-5 bg-brass-soft border border-brass/30 rounded-xl flex flex-col gap-3 transition-all duration-300 hidden">
+            <h5 class="text-xs font-black uppercase tracking-widest text-brass flex items-center gap-1.5 border-b border-brass/25 pb-1">
+              <svg class="w-4 h-4 text-brass" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+              </svg>
+              Stock Needed Summary
+            </h5>
+            <ul id="stock-summary-list" class="flex flex-col gap-1"></ul>
+          </div>
+
           <!-- Quick-Tap Restock Grid -->
           <div id="restock-grid-container" class="flex flex-col gap-6 mt-2"></div>
           
@@ -1168,21 +1179,21 @@ function setupStockAndPhotoHandlers() {
           localStorage.setItem("crown_closedown_shortages", shortagesText);
         }
 
-        // Re-render restock grid and re-validate disclaimer CTA
+        // Re-render restock grid, update summary panel, and re-validate disclaimer CTA
         renderRestockGrid();
         validateForm();
+        updateStockSummary();
 
-        // Trigger elastic pulse transitions on the newly populated badges
+        // Trigger visual count pulses en masse in a staggered waterfall cascade
         setTimeout(() => {
-          const badges = document.querySelectorAll(".count-val");
-          badges.forEach(badge => {
-            const val = parseInt(badge.innerText);
-            if (val > 0) {
+          const activeBadges = Array.from(document.querySelectorAll(".count-val")).filter(badge => parseInt(badge.innerText) > 0);
+          activeBadges.forEach((badge, idx) => {
+            setTimeout(() => {
               badge.classList.add("count-pulse");
               setTimeout(() => {
                 badge.classList.remove("count-pulse");
               }, 150);
-            }
+            }, idx * 60); // 60ms stagger interval
           });
         }, 50);
 
@@ -1216,6 +1227,7 @@ function setupStockAndPhotoHandlers() {
 
   // Render the Quick-Tap Grid
   renderRestockGrid();
+  updateStockSummary();
 }
 
 function renderRestockGrid() {
@@ -1283,6 +1295,7 @@ function renderRestockGrid() {
             countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-brass scale-110 transition-all duration-200";
           }
           validateForm();
+          updateStockSummary();
         }
       });
 
@@ -1306,6 +1319,7 @@ function renderRestockGrid() {
         countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-brass scale-110 transition-all duration-200";
         itemCard.querySelector("span").className = "flex-1 min-w-0 pr-4 text-base md:text-lg font-bold text-slate-100 transition-colors duration-200 truncate";
         validateForm();
+        updateStockSummary();
       });
 
       listWrapper.appendChild(itemCard);
@@ -1313,6 +1327,7 @@ function renderRestockGrid() {
 
     container.appendChild(catBlock);
   });
+  updateStockSummary();
 }
 
 function bindImageUploader(inputEl, imgEl, delBtnEl, storageKey) {
@@ -1388,4 +1403,33 @@ function bindImageUploader(inputEl, imgEl, delBtnEl, storageKey) {
     
     localStorage.removeItem(storageKey);
   });
+}
+
+function updateStockSummary() {
+  const panel = document.getElementById("stock-summary-panel");
+  const list = document.getElementById("stock-summary-list");
+  if (!panel || !list) return;
+
+  const items = [];
+  RESTOCK_ITEMS_CONFIG.forEach(cat => {
+    cat.items.forEach(itemName => {
+      const count = restockCounts[itemName] || 0;
+      if (count > 0) {
+        items.push({ name: itemName, count: count });
+      }
+    });
+  });
+
+  if (items.length === 0) {
+    panel.classList.add("hidden");
+    list.innerHTML = "";
+  } else {
+    panel.classList.remove("hidden");
+    list.innerHTML = items.map(item => `
+      <li class="flex items-center justify-between py-2 border-b border-brass/10 last:border-0 text-slate-200">
+        <span class="font-bold text-sm tracking-tight">${item.name}</span>
+        <span class="font-extrabold text-brass bg-brass/10 px-3 py-1 rounded-lg border border-brass/25 text-sm">x${item.count}</span>
+      </li>
+    `).join("");
+  }
 }
