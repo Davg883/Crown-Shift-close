@@ -89,7 +89,6 @@ const CHECKLIST_DATA = [
   }
 ];
 
-// Quick-tap Restock Inventory configuration
 const RESTOCK_ITEMS_CONFIG = [
   {
     category: "Mixers & Softs",
@@ -118,6 +117,19 @@ const RESTOCK_ITEMS_CONFIG = [
       "Desperados",
       "Old Speckled Hen",
       "Magners"
+    ]
+  },
+  {
+    category: "Wine & Premium",
+    items: [
+      "BrewDog Punk IPA",
+      "Smirnoff Ice",
+      "WKD Blue",
+      "Thatchers Haze",
+      "Jägermeister",
+      "White Wine (Mini)",
+      "Rosé Wine (Mini)",
+      "Red Wine (Mini)"
     ]
   }
 ];
@@ -211,20 +223,40 @@ function stopDrawing() {
 }
 
 // Setup Canvas size
-function initCanvas() {
+function resizeCanvas() {
   const rect = canvas.parentNode.getBoundingClientRect();
-  const ratio = window.devicePixelRatio || 1;
-  
-  canvas.width = rect.width * ratio;
-  canvas.height = 144 * ratio;
-  canvas.style.width = `${rect.width}px`;
-  canvas.style.height = `144px`;
-  
-  ctx.scale(ratio, ratio);
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#b89047"; // Warm brass drawing color
-  
+  if (rect.width > 0 && Math.abs(canvas.offsetWidth - rect.width) > 2) {
+    // If the canvas is already signed, save its image
+    let tempSig = null;
+    if (isSigned) {
+      tempSig = canvas.toDataURL();
+    }
+    
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = rect.width * ratio;
+    canvas.height = 144 * ratio;
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `144px`;
+    
+    ctx.scale(ratio, ratio);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#b89047";
+    
+    if (tempSig) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, rect.width, 144);
+      };
+      img.src = tempSig;
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      signaturePlaceholder.classList.remove("hidden");
+    }
+  }
+}
+
+function initCanvas() {
   // Track pointer movements
   canvas.addEventListener("mousedown", startDrawing);
   canvas.addEventListener("mousemove", draw);
@@ -236,6 +268,9 @@ function initCanvas() {
   canvas.addEventListener("touchmove", draw);
   canvas.addEventListener("touchend", stopDrawing);
   canvas.addEventListener("touchcancel", stopDrawing);
+
+  // Set canvas size (if visible on load)
+  resizeCanvas();
 }
 
 // Clear signature pad
@@ -291,79 +326,6 @@ function renderChecklist() {
         const itemRow = createChecklistItem(item);
         accordionContent.appendChild(itemRow);
       });
-      
-      // Inject Fridge Stock & Photo Capture Component inside Phase 1
-      if (phase.phaseId === 1) {
-        const stockContainer = document.createElement("div");
-        stockContainer.className = "mt-5 flex flex-col gap-5";
-        stockContainer.innerHTML = `
-          <!-- Photo capture boxes stack vertically, taking up 100% width with strict height h-40 relative -->
-          <div class="flex flex-col gap-4">
-            <!-- Top/Mixer Fridge Photo -->
-            <div id="preview-top-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
-              <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
-                <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
-                </svg>
-                <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Top/Mixer Fridge</span>
-              </div>
-              <input type="file" id="input-top-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
-              <img id="img-top-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
-              <button type="button" id="btn-del-top-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-            
-            <!-- Lower/Beer Fridge Photo -->
-            <div id="preview-beer-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
-              <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
-                <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
-                </svg>
-                <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Lower/Beer Fridge</span>
-              </div>
-              <input type="file" id="input-beer-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
-              <img id="img-beer-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
-              <button type="button" id="btn-del-beer-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Action Button to Auto-Generate Stock Needed from Captured Images -->
-          <div class="flex flex-col gap-1.5 mt-1">
-            <button type="button" id="btn-generate-stock" class="w-full bg-gradient-to-r from-brass-dark via-brass to-brass-light hover:brightness-110 active:scale-[0.98] text-slate-950 font-bold py-4 px-6 rounded-xl shadow-lg shadow-brass-soft transition-all flex items-center justify-center gap-2 cursor-pointer">
-              <svg class="w-5 h-5 text-slate-950 flex-none animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L3 15.187m6 5.813a2 2 0 01-2-2m2 2a2 2 0 002-2m-2 2h-.059M21 3c.969 0 1.371 1.24.588 1.81l-3.96 2.876a1 1 0 00-.374 1.13l1.513 4.654c.299.922-.755 1.688-1.538 1.118l-3.96-2.876a1 1 0 00-1.18 0l-3.96 2.876c-.783.57-1.837-.196-1.538-1.118l1.513-4.654a1 1 0 00-.374-1.13L3.588 4.81C2.805 4.24 3.207 3 4.176 3H21z"/>
-              </svg>
-              <span>Generate Stock Needed</span>
-            </button>
-            <div id="scan-message" class="text-xs text-center text-slate-400 font-medium hidden"></div>
-          </div>
-
-          <!-- Quick-Tap Restock Grid -->
-          <div id="restock-grid-container" class="flex flex-col gap-6 mt-2"></div>
-          
-          <!-- Textarea shortages -->
-          <div class="flex flex-col gap-2 mt-2">
-            <label for="restock-shortages" class="text-xs font-bold uppercase tracking-wider text-slate-300">Other Shortages / Miscellaneous Notes</label>
-            <textarea id="restock-shortages" rows="3" placeholder="e.g. Low on lemons, order lime cordial..."
-              class="w-full bg-slate-900 border border-slate-800 focus:border-brass rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:ring-1 focus:ring-brass transition-all resize-none"></textarea>
-          </div>
-        `;
-        accordionContent.appendChild(stockContainer);
-        
-        // Setup handlers dynamically
-        setTimeout(() => {
-          setupStockAndPhotoHandlers();
-        }, 0);
-      }
     } else if (phase.subsections) {
       phase.subsections.forEach(sub => {
         const subHeading = document.createElement("h4");
@@ -564,6 +526,7 @@ function resetChecklist() {
     // Clear stocks & photos & quick-tap counts
     localStorage.removeItem("crown_closedown_top_fridge_img");
     localStorage.removeItem("crown_closedown_beer_fridge_img");
+    localStorage.removeItem("crown_closedown_wine_fridge_img");
     localStorage.removeItem("crown_closedown_back_bar_img");
     localStorage.removeItem("crown_closedown_cellar_img");
     localStorage.removeItem("crown_closedown_shortages");
@@ -578,6 +541,8 @@ function resetChecklist() {
     
     clearSignature();
     renderChecklist();
+    renderStockTab();
+    setupStockAndPhotoHandlers();
     updateProgress();
     validateForm();
   }
@@ -795,31 +760,42 @@ function generatePDFAndRedirect() {
             }
             
             // 3. Fridge photos
-            if (storedTopFridgeImg || storedBeerFridgeImg) {
-              ensureSpace(60);
+            const storedWineFridgeImg = localStorage.getItem("crown_closedown_wine_fridge_img");
+            if (storedTopFridgeImg || storedBeerFridgeImg || storedWineFridgeImg) {
+              ensureSpace(50);
               doc.setFont("helvetica", "bold");
               doc.setFontSize(8.5);
               doc.setTextColor(184, 144, 71);
               doc.text("FRIDGE STOCK PHOTOS:", margin + 3, y + 2);
               y += 6.5;
               
-              const photoWidth = 60;
-              const photoHeight = 45;
+              const photoWidth = 54;
+              const photoHeight = 40.5;
+              let currentX = margin + 3;
               
               if (storedTopFridgeImg) {
                 try {
-                  doc.addImage(storedTopFridgeImg, "JPEG", margin + 3, y, photoWidth, photoHeight);
+                  doc.addImage(storedTopFridgeImg, "JPEG", currentX, y, photoWidth, photoHeight);
+                  currentX += photoWidth + 4;
                 } catch (e) {
                   console.error("Error adding top fridge image to PDF", e);
                 }
               }
               
               if (storedBeerFridgeImg) {
-                const xPos = storedTopFridgeImg ? (margin + 3 + photoWidth + 5) : (margin + 3);
                 try {
-                  doc.addImage(storedBeerFridgeImg, "JPEG", xPos, y, photoWidth, photoHeight);
+                  doc.addImage(storedBeerFridgeImg, "JPEG", currentX, y, photoWidth, photoHeight);
+                  currentX += photoWidth + 4;
                 } catch (e) {
                   console.error("Error adding beer fridge image to PDF", e);
+                }
+              }
+              
+              if (storedWineFridgeImg) {
+                try {
+                  doc.addImage(storedWineFridgeImg, "JPEG", currentX, y, photoWidth, photoHeight);
+                } catch (e) {
+                  console.error("Error adding wine fridge image to PDF", e);
                 }
               }
               y += photoHeight + 6;
@@ -1057,6 +1033,11 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Initialise tab navigation and render stock tab
+  initTabs();
+  renderStockTab();
+  setupStockAndPhotoHandlers();
 });
 
 // Photo uploaders, quick restock grid & notes helper functions
@@ -1068,6 +1049,10 @@ function setupStockAndPhotoHandlers() {
   const inputBeer = document.getElementById("input-beer-fridge");
   const imgBeer = document.getElementById("img-beer-fridge");
   const btnDelBeer = document.getElementById("btn-del-beer-fridge");
+
+  const inputWine = document.getElementById("input-wine-fridge");
+  const imgWine = document.getElementById("img-wine-fridge");
+  const btnDelWine = document.getElementById("btn-del-wine-fridge");
 
   const shortagesTextarea = document.getElementById("restock-shortages");
 
@@ -1090,6 +1075,15 @@ function setupStockAndPhotoHandlers() {
     btnDelBeer.classList.add("opacity-100", "scale-100", "pointer-events-auto");
   }
 
+  const storedWineFridgeImg = localStorage.getItem("crown_closedown_wine_fridge_img");
+  if (storedWineFridgeImg && imgWine && btnDelWine) {
+    imgWine.src = storedWineFridgeImg;
+    imgWine.classList.remove("opacity-0", "scale-95", "pointer-events-none");
+    imgWine.classList.add("opacity-100", "scale-100", "pointer-events-auto");
+    btnDelWine.classList.remove("opacity-0", "scale-90", "pointer-events-none");
+    btnDelWine.classList.add("opacity-100", "scale-100", "pointer-events-auto");
+  }
+
   // Load shortages text
   const storedShortages = localStorage.getItem("crown_closedown_shortages");
   if (storedShortages && shortagesTextarea) {
@@ -1102,6 +1096,9 @@ function setupStockAndPhotoHandlers() {
   }
   if (inputBeer && imgBeer && btnDelBeer) {
     bindImageUploader(inputBeer, imgBeer, btnDelBeer, "crown_closedown_beer_fridge_img");
+  }
+  if (inputWine && imgWine && btnDelWine) {
+    bindImageUploader(inputWine, imgWine, btnDelWine, "crown_closedown_wine_fridge_img");
   }
 
   // Bind shortages typing
@@ -1118,8 +1115,9 @@ function setupStockAndPhotoHandlers() {
     btnGenStock.addEventListener("click", async () => {
       const topImg = localStorage.getItem("crown_closedown_top_fridge_img") || localStorage.getItem("crown_closedown_back_bar_img");
       const beerImg = localStorage.getItem("crown_closedown_beer_fridge_img") || localStorage.getItem("crown_closedown_cellar_img");
+      const wineImg = localStorage.getItem("crown_closedown_wine_fridge_img");
 
-      if (!topImg && !beerImg) {
+      if (!topImg && !beerImg && !wineImg) {
         alert("Please capture/upload at least one fridge photo first to generate the stock needed list.");
         return;
       }
@@ -1171,6 +1169,20 @@ function setupStockAndPhotoHandlers() {
             }).then(r => r.json()).then(data => ({ type: "beer", data }))
           );
         }
+        if (wineImg) {
+          const wineKeys = RESTOCK_ITEMS_CONFIG.find(c => c.category === "Wine & Premium")?.items || [];
+          requests.push(
+            fetch("/api/analyze-fridge", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                image: wineImg, 
+                fridgeType: "fridge3",
+                currentUiKeys: wineKeys
+              })
+            }).then(r => r.json()).then(data => ({ type: "fridge3", data }))
+          );
+        }
 
         if (scanMessage) {
           scanMessage.innerText = `Processing ${requests.length} fridge image${requests.length > 1 ? "s" : ""} with Gemini AI...`;
@@ -1186,25 +1198,26 @@ function setupStockAndPhotoHandlers() {
           if (result.data.success && result.data.stock) {
             const stock = result.data.stock;
             Object.entries(stock).forEach(([itemName, count]) => {
-              if (count > 0) {
-                restockCounts[itemName] = count;
-              }
+              restockCounts[itemName] = count;
             });
 
             // Build shortages text from real analysis
             const neededItems = Object.entries(stock).filter(([_, c]) => c > 0);
+            const label = (result.type === "mixer" || result.type === "fridge1") 
+              ? "Softs/Mixers" 
+              : ((result.type === "beer" || result.type === "fridge2") ? "Beers/Cider" : "Wine/Premium");
+
             if (neededItems.length > 0) {
-              const label = result.type === "mixer" ? "Softs/Mixers" : "Beers/Cider";
               const itemList = neededItems.map(([name, c]) => `${name} (x${c})`).join(", ");
               shortagesText += `- ${label}: ${itemList}\n`;
             } else {
-              const label = result.type === "mixer" ? "Softs/Mixers" : "Beers/Cider";
               shortagesText += `- ${label}: Fully stocked ✓\n`;
             }
           } else {
             hasError = true;
             const errMsg = result.data.error || "Unknown error";
-            shortagesText += `- ${result.type} fridge: Analysis failed (${errMsg})\n`;
+            const displayType = result.type === "fridge3" ? "wine & premium" : result.type;
+            shortagesText += `- ${displayType} fridge: Analysis failed (${errMsg})\n`;
           }
         });
 
@@ -1316,17 +1329,19 @@ function renderRestockGrid() {
       const isActive = currentCount > 0;
 
       const itemCard = document.createElement("div");
-      itemCard.className = `flex items-center justify-between p-5 rounded-xl border transition-all duration-300 ${
+      itemCard.className = `flex flex-col gap-4 p-5 rounded-xl border transition-all duration-300 ${
         isActive 
           ? "bg-brass/5 border-brass/50 shadow-md shadow-brass/5" 
           : "bg-slate-900 border-slate-800"
       }`;
 
       itemCard.innerHTML = `
-        <span class="flex-1 min-w-0 pr-4 text-base md:text-lg font-bold ${isActive ? "text-slate-100" : "text-slate-300"} transition-colors duration-200 truncate">${itemName}</span>
-        <div class="flex items-center gap-4 select-none flex-none">
+        <div class="w-full text-center">
+          <span class="product-title text-lg md:text-xl font-black tracking-wider uppercase ${isActive ? "text-slate-100" : "text-slate-300"} transition-colors duration-200">${itemName}</span>
+        </div>
+        <div class="flex items-center justify-center gap-6 select-none w-full">
           <button type="button" class="btn-dec w-14 h-14 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-black flex items-center justify-center text-2xl transition-all cursor-pointer" aria-label="Decrease count">-</button>
-          <span class="count-val inline-block text-2xl font-black w-10 text-center transition-all duration-200 ${isActive ? "text-brass scale-110" : "text-slate-500"}">${currentCount}</span>
+          <span class="count-val inline-block text-2xl font-black w-12 text-center transition-all duration-200 ${isActive ? "text-brass scale-110" : "text-slate-500"}">${currentCount}</span>
           <button type="button" class="btn-inc w-14 h-14 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-brass font-black flex items-center justify-center text-2xl transition-all cursor-pointer" aria-label="Increase count">+</button>
         </div>
       `;
@@ -1354,11 +1369,11 @@ function renderRestockGrid() {
           }, 150);
 
           if (val === 0) {
-            itemCard.className = "flex items-center justify-between p-5 rounded-xl border border-slate-800 bg-slate-900 transition-all duration-300";
-            countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-slate-500 transition-all duration-200";
-            itemCard.querySelector("span").className = "flex-1 min-w-0 pr-4 text-base md:text-lg font-bold text-slate-300 transition-colors duration-200 truncate";
+            itemCard.className = "flex flex-col gap-4 p-5 rounded-xl border border-slate-800 bg-slate-900 transition-all duration-300";
+            countVal.className = "count-val inline-block text-2xl font-black w-12 text-center text-slate-500 transition-all duration-200";
+            itemCard.querySelector(".product-title").className = "product-title text-lg md:text-xl font-black tracking-wider uppercase text-slate-300 transition-colors duration-200";
           } else {
-            countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-brass scale-110 transition-all duration-200";
+            countVal.className = "count-val inline-block text-2xl font-black w-12 text-center text-brass scale-110 transition-all duration-200";
           }
           validateForm();
         }
@@ -1380,9 +1395,9 @@ function renderRestockGrid() {
           countVal.classList.remove("count-pulse");
         }, 150);
 
-        itemCard.className = "flex items-center justify-between p-5 rounded-xl border border-brass/50 bg-brass/5 shadow-md shadow-brass/5 transition-all duration-300";
-        countVal.className = "count-val inline-block text-2xl font-black w-10 text-center text-brass scale-110 transition-all duration-200";
-        itemCard.querySelector("span").className = "flex-1 min-w-0 pr-4 text-base md:text-lg font-bold text-slate-100 transition-colors duration-200 truncate";
+        itemCard.className = "flex flex-col gap-4 p-5 rounded-xl border border-brass/50 bg-brass/5 shadow-md shadow-brass/5 transition-all duration-300";
+        countVal.className = "count-val inline-block text-2xl font-black w-12 text-center text-brass scale-110 transition-all duration-200";
+        itemCard.querySelector(".product-title").className = "product-title text-lg md:text-xl font-black tracking-wider uppercase text-slate-100 transition-colors duration-200";
         validateForm();
       });
 
@@ -1466,6 +1481,119 @@ function bindImageUploader(inputEl, imgEl, delBtnEl, storageKey) {
     
     localStorage.removeItem(storageKey);
   });
+}
+
+function initTabs() {
+  const tabStock = document.getElementById("tab-stock");
+  const tabChecklist = document.getElementById("tab-checklist");
+  const stockTabSection = document.getElementById("stock-tab");
+  const checklistTabSection = document.getElementById("checklist-tab");
+
+  if (!tabStock || !tabChecklist) return;
+
+  tabStock.addEventListener("click", () => {
+    // Switch to Stock Checker tab
+    tabStock.className = "flex-1 py-4 text-center text-sm font-black tracking-wider uppercase text-brass border-b-2 border-brass transition-all focus:outline-none cursor-pointer";
+    tabChecklist.className = "flex-1 py-4 text-center text-sm font-bold tracking-wider uppercase text-slate-400 border-b-2 border-transparent transition-all focus:outline-none cursor-pointer";
+    stockTabSection.classList.remove("hidden");
+    checklistTabSection.classList.add("hidden");
+  });
+
+  tabChecklist.addEventListener("click", () => {
+    // Switch to Checklist tab
+    tabChecklist.className = "flex-1 py-4 text-center text-sm font-black tracking-wider uppercase text-brass border-b-2 border-brass transition-all focus:outline-none cursor-pointer";
+    tabStock.className = "flex-1 py-4 text-center text-sm font-bold tracking-wider uppercase text-slate-400 border-b-2 border-transparent transition-all focus:outline-none cursor-pointer";
+    checklistTabSection.classList.remove("hidden");
+    stockTabSection.classList.add("hidden");
+    
+    // Ensure canvas has correct width after tab becomes visible
+    resizeCanvas();
+  });
+}
+
+function renderStockTab() {
+  const container = document.getElementById("stock-tab-content");
+  if (!container) return;
+
+  container.innerHTML = `
+    <!-- Photo capture boxes stack vertically, taking up 100% width with strict height h-40 relative -->
+    <div class="flex flex-col gap-4">
+      <!-- Top/Mixer Fridge Photo -->
+      <div id="preview-top-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
+        <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
+          <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
+          </svg>
+          <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Top/Mixer Fridge</span>
+        </div>
+        <input type="file" id="input-top-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+        <img id="img-top-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
+        <button type="button" id="btn-del-top-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Lower/Beer Fridge Photo -->
+      <div id="preview-beer-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
+        <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
+          <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
+          </svg>
+          <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Lower/Beer Fridge</span>
+        </div>
+        <input type="file" id="input-beer-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+        <img id="img-beer-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
+        <button type="button" id="btn-del-beer-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Wine & Premium Fridge Photo -->
+      <div id="preview-wine-fridge" class="w-full h-40 bg-slate-900 border border-slate-800 hover:border-brass/50 rounded-xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group transition-all duration-300">
+        <div class="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
+          <svg class="w-8 h-8 text-slate-500 group-hover:text-brass transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
+          </svg>
+          <span class="text-xs font-bold tracking-wider uppercase text-slate-300 group-hover:text-brass transition-colors duration-300">Capture Wine & Premium Fridge</span>
+        </div>
+        <input type="file" id="input-wine-fridge" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+        <img id="img-wine-fridge" class="absolute inset-0 w-full h-full object-cover opacity-0 scale-95 pointer-events-none z-10 transition-all duration-300 ease-out">
+        <button type="button" id="btn-del-wine-fridge" class="absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full p-2.5 opacity-0 scale-90 pointer-events-none z-30 transition-all duration-300 ease-out active:scale-95 shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Button to Auto-Generate Stock Needed from Captured Images -->
+    <div class="flex flex-col gap-1.5 mt-1">
+      <button type="button" id="btn-generate-stock" class="w-full bg-gradient-to-r from-brass-dark via-brass to-brass-light hover:brightness-110 active:scale-[0.98] text-slate-950 font-bold py-4 px-6 rounded-xl shadow-lg shadow-brass-soft transition-all flex items-center justify-center gap-2 cursor-pointer">
+        <svg class="w-5 h-5 text-slate-950 flex-none animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L3 15.187m6 5.813a2 2 0 01-2-2m2 2a2 2 0 002-2m-2 2h-.059M21 3c.969 0 1.371 1.24.588 1.81l-3.96 2.876a1 1 0 00-.374 1.13l1.513 4.654c.299.922-.755 1.688-1.538 1.118l-3.96-2.876a1 1 0 00-1.18 0l-3.96 2.876c-.783.57-1.837-.196-1.538-1.118l1.513-4.654a1 1 0 00-.374-1.13L3.588 4.81C2.805 4.24 3.207 3 4.176 3H21z"/>
+        </svg>
+        <span>Generate Stock Needed</span>
+      </button>
+      <div id="scan-message" class="text-xs text-center text-slate-400 font-medium hidden"></div>
+    </div>
+
+    <!-- Quick-Tap Restock Grid -->
+    <div id="restock-grid-container" class="flex flex-col gap-6 mt-2"></div>
+    
+    <!-- Textarea shortages -->
+    <div class="flex flex-col gap-2 mt-2">
+      <label for="restock-shortages" class="text-xs font-bold uppercase tracking-wider text-slate-300">Other Shortages / Miscellaneous Notes</label>
+      <textarea id="restock-shortages" rows="3" placeholder="e.g. Low on lemons, order lime cordial..."
+        class="w-full bg-slate-900 border border-slate-800 focus:border-brass rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:ring-1 focus:ring-brass transition-all resize-none"></textarea>
+    </div>
+  `;
 }
 
 

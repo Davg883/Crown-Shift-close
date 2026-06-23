@@ -58,20 +58,35 @@
     </div>
   </header>
 
+  <!-- Tab Navigation -->
+  <div class="sticky top-[73px] z-30 bg-slate-950/90 backdrop-blur-md border-b border-slate-800 flex max-w-xl w-full mx-auto px-4">
+    <button id="tab-stock" class="flex-1 py-4 text-center text-sm font-black tracking-wider uppercase text-brass border-b-2 border-brass transition-all focus:outline-none cursor-pointer">Stock Checker</button>
+    <button id="tab-checklist" class="flex-1 py-4 text-center text-sm font-bold tracking-wider uppercase text-slate-400 border-b-2 border-transparent transition-all focus:outline-none cursor-pointer">Closing Checklist</button>
+  </div>
+
   <!-- Main Scrollable Content -->
   <main class="flex-1 max-w-xl w-full mx-auto p-4 pb-36 flex flex-col gap-6">
     
-    <!-- Checklist Phases -->
-    <div id="checklist-container" class="flex flex-col gap-4">
-      <!-- Dynamic Checklist Content will be injected here by app.js -->
-      <div class="flex justify-center items-center py-12 text-slate-500">
-        <svg class="animate-spin h-8 w-8 text-brass mr-3" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>Loading checklist items...</span>
+    <!-- Tab 1: Stock Checker (Active by Default) -->
+    <section id="stock-tab" class="flex flex-col gap-5">
+      <div id="stock-tab-content" class="flex flex-col gap-5">
+        <!-- Stock Checker UI will be dynamically injected here by app.js -->
       </div>
-    </div>
+    </section>
+
+    <!-- Tab 2: Closing Checklist (Hidden by Default) -->
+    <section id="checklist-tab" class="flex flex-col gap-4 hidden">
+      <div id="checklist-container" class="flex flex-col gap-4">
+        <!-- Dynamic Checklist Content will be injected here by app.js -->
+        <div class="flex justify-center items-center py-12 text-slate-500">
+          <svg class="animate-spin h-8 w-8 text-brass mr-3" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Loading checklist items...</span>
+        </div>
+      </div>
+    </section>
 
     <!-- Shift Compliance Disclaimer Panel -->
     <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-3">

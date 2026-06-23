@@ -41,17 +41,37 @@ module.exports = async function handler(req, res) {
       },
     };
 
-    const prompt = `
-  You are an advanced industrial inventory vision engine for a commercial hotel pub.
-  Analyze the provided image of the "${fridgeType}" fridge.
-  
-  CRITICAL VISION DIRECTIVES:
-  1. Focus EXCLUSIVELY on the FRONT ROW line of bottles/cans to determine row fullness. Ignore dark depth.
-  2. If a specific brand row is solidly packed left-to-right to the glass, Restock Needed is 0.
-  3. If you spot 1 or 2 distinct gaps in the front row line, Restock Needed is 1 or 2.
-  4. GLARE OVERRIDE: Clear glass (Desperados) and reflective white necks (Stella) create high-contrast bright spots. Treat these solid lines of light reflections as FULL rows (Restock: 0).
+    let fridgeProfile = "";
+    if (fridgeType === "mixer" || fridgeType === "fridge1") {
+      fridgeProfile = `
+  FRIDGE TYPE: Mixers & Softs (Mixer Fridge)
+  - Target inventory items: Thatchers Zero, Doom Bar Zero, Old Mout Cider, Diet Coke, Coca-Cola, Fanta, Schweppes Tonic/Slimline, Monster Energy (Punch), Monster Energy (Mango), Monster Energy (Original), Monster Energy (Ultra).`;
+    } else if (fridgeType === "beer" || fridgeType === "fridge2") {
+      fridgeProfile = `
+  FRIDGE TYPE: Bottled Beers & Alcopops (Beer Fridge)
+  - Target inventory items: VK (Blue), VK (Ice), VK (Orange), Stella Artois, Birra Moretti, Desperados, Old Speckled Hen, Magners.
+  - GLARE OVERRIDE DIRECTIVE: Clear glass (Desperados) and reflective white necks (Stella) create high-contrast bright spots. Treat these solid lines of light reflections as FULL rows (Restock: 0) instead of empty background spaces.`;
+    } else if (fridgeType === "wine" || fridgeType === "fridge3") {
+      fridgeProfile = `
+  FRIDGE TYPE: Wine & Premium (Wine/Premium Fridge)
+  - Virtual boundary grid:
+    * Top/Middle Shelves contain: BrewDog Punk IPA, Smirnoff Ice, WKD Blue, Thatchers Haze, Jägermeister (Max Capacity per row: 6)
+    * Bottom Shelf contains single-serve mini wines: White Wine (Mini), Rosé Wine (Mini), Red Wine (Mini) (Max Capacity per row: 8)`;
+    }
 
-  You MUST strictly output a JSON object containing ONLY the keys provided in the array below. Match the spelling exactly. Estimate the restock quantity (0 to 8) based on front-row gaps.
+    const prompt = `
+  You are an advanced industrial inventory vision engine trained specifically for commercial bar setups.
+  Analyze the provided image of the "${fridgeType}" fridge.
+  ${fridgeProfile}
+
+  CRITICAL VISION DIRECTIVES FOR 2D IMAGES:
+  1. DO NOT try to count individual bottles going backward into the dark shelves.
+  2. Instead, focus EXCLUSIVELY on the FRONT ROW line of bottles/cans to determine row fullness. Ignore dark depth.
+  3. Look for "GAPING HOLES" (empty floor mat space) or "TIPPED OVER / MISSING" silhouettes in the front row line to estimate the restock quantity.
+  4. If a specific brand row is solidly packed left-to-right to the glass, Restock Needed is 0.
+  5. If you spot 1 or 2 distinct gaps in the front row line, Restock Needed is 1 or 2.
+
+  You MUST strictly output a JSON object containing ONLY the keys provided in the array below. Match the spelling exactly. Estimate the restock quantity (0 to 8) based on front-row gaps and shelf capacities.
 
   STRICT LIST OF VALID KEYS TO RETURN:
   ${JSON.stringify(currentUiKeys || [])}
