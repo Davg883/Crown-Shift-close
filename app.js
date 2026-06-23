@@ -1122,11 +1122,11 @@ function setupStockAndPhotoHandlers() {
     });
   }
 
-  // Bind Generate Stock Button Click
+  // Bind Generate Stock Button Click — Live AI Visual Analysis via Gemini
   const btnGenStock = document.getElementById("btn-generate-stock");
   const scanMessage = document.getElementById("scan-message");
   if (btnGenStock) {
-    btnGenStock.addEventListener("click", () => {
+    btnGenStock.addEventListener("click", async () => {
       const topImg = localStorage.getItem("crown_closedown_top_fridge_img") || localStorage.getItem("crown_closedown_back_bar_img");
       const beerImg = localStorage.getItem("crown_closedown_beer_fridge_img") || localStorage.getItem("crown_closedown_cellar_img");
 
@@ -1135,8 +1135,9 @@ function setupStockAndPhotoHandlers() {
         return;
       }
 
-      // Disable button and show scanning animation
+      // Disable button immediately to prevent multi-tapping
       btnGenStock.disabled = true;
+      btnGenStock.classList.add("opacity-70");
       btnGenStock.innerHTML = `
         <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-950 inline-block" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1146,45 +1147,83 @@ function setupStockAndPhotoHandlers() {
       `;
       if (scanMessage) {
         scanMessage.classList.remove("hidden");
-        scanMessage.innerText = "Running AI visual analysis on fridge shelves...";
+        scanMessage.innerText = "Sending images to Gemini Vision AI for analysis...";
         scanMessage.className = "text-xs text-center text-brass font-semibold mt-2.5 animate-pulse block";
       }
 
-      setTimeout(() => {
-        // Generate realistic counts
+      try {
+        // Build parallel fetch requests for each uploaded fridge photo
+        const requests = [];
         if (topImg) {
-          restockCounts["Thatchers Zero"] = 3;
-          restockCounts["Doom Bar Zero"] = 2;
-          restockCounts["Schweppes Tonic/Slimline"] = 6;
-          restockCounts["Monster Energy (Original)"] = 4;
-          restockCounts["Diet Coke"] = 5;
+          requests.push(
+            fetch("/api/analyze-fridge", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: topImg, fridgeType: "mixer" })
+            }).then(r => r.json()).then(data => ({ type: "mixer", data }))
+          );
         }
         if (beerImg) {
-          restockCounts["Birra Moretti"] = 8;
-          restockCounts["Stella Artois"] = 5;
-          restockCounts["VK (Blue)"] = 4;
-          restockCounts["Magners"] = 3;
+          requests.push(
+            fetch("/api/analyze-fridge", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: beerImg, fridgeType: "beer" })
+            }).then(r => r.json()).then(data => ({ type: "beer", data }))
+          );
         }
+
+        if (scanMessage) {
+          scanMessage.innerText = `Processing ${requests.length} fridge image${requests.length > 1 ? "s" : ""} with Gemini AI...`;
+        }
+
+        const results = await Promise.all(requests);
+
+        // Process each result and merge into restockCounts
+        let shortagesText = "AI Stock Scan Results:\n";
+        let hasError = false;
+
+        results.forEach(result => {
+          if (result.data.success && result.data.stock) {
+            const stock = result.data.stock;
+            Object.entries(stock).forEach(([itemName, count]) => {
+              if (count > 0) {
+                restockCounts[itemName] = count;
+              }
+            });
+
+            // Build shortages text from real analysis
+            const neededItems = Object.entries(stock).filter(([_, c]) => c > 0);
+            if (neededItems.length > 0) {
+              const label = result.type === "mixer" ? "Softs/Mixers" : "Beers/Cider";
+              const itemList = neededItems.map(([name, c]) => `${name} (x${c})`).join(", ");
+              shortagesText += `- ${label}: ${itemList}\n`;
+            } else {
+              const label = result.type === "mixer" ? "Softs/Mixers" : "Beers/Cider";
+              shortagesText += `- ${label}: Fully stocked ✓\n`;
+            }
+          } else {
+            hasError = true;
+            const errMsg = result.data.error || "Unknown error";
+            shortagesText += `- ${result.type} fridge: Analysis failed (${errMsg})\n`;
+          }
+        });
 
         // Save restock counts to localStorage
         localStorage.setItem("crown_closedown_restock_counts", JSON.stringify(restockCounts));
 
-        // Populate shortages notes textarea as well
-        let shortagesText = "AI Stock Scan Results:\n";
-        if (topImg) shortagesText += "- Softs/Mixers: Restock Schweppes Tonic (x6) & Diet Coke (x5).\n";
-        if (beerImg) shortagesText += "- Beers/Cider: Restock Birra Moretti (x8) & Stella Artois (x5).\n";
-
+        // Populate shortages notes textarea
         if (shortagesTextarea) {
           shortagesTextarea.value = shortagesText;
           localStorage.setItem("crown_closedown_shortages", shortagesText);
         }
 
-        // Re-render restock grid, update summary panel, and re-validate disclaimer CTA
+        // Re-render restock grid, update summary panel, and re-validate
         renderRestockGrid();
         validateForm();
         updateStockSummary();
 
-        // Trigger visual count pulses en masse in a staggered waterfall cascade
+        // Trigger staggered waterfall cascade pulse on active badges
         setTimeout(() => {
           const activeBadges = Array.from(document.querySelectorAll(".count-val")).filter(badge => parseInt(badge.innerText) > 0);
           activeBadges.forEach((badge, idx) => {
@@ -1193,24 +1232,27 @@ function setupStockAndPhotoHandlers() {
               setTimeout(() => {
                 badge.classList.remove("count-pulse");
               }, 150);
-            }, idx * 60); // 60ms stagger interval
+            }, idx * 60);
           });
         }, 50);
 
         // Success state update on the button
         btnGenStock.disabled = false;
+        btnGenStock.classList.remove("opacity-70");
         btnGenStock.innerHTML = `
           <svg class="w-5 h-5 text-slate-950 flex-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
-          <span>Stock Generated Successfully!</span>
+          <span>${hasError ? "Partial Results — Check Notes" : "Stock Generated Successfully!"}</span>
         `;
         if (scanMessage) {
-          scanMessage.innerText = "Successfully generated stock list based on fridge contents.";
-          scanMessage.className = "text-xs text-center text-green-400 font-semibold mt-2.5 block transition-all duration-300";
+          scanMessage.innerText = hasError
+            ? "Some images could not be analyzed. Check the shortages notes for details."
+            : "Successfully analyzed fridge contents with Gemini Vision AI.";
+          scanMessage.className = `text-xs text-center ${hasError ? "text-amber-400" : "text-green-400"} font-semibold mt-2.5 block transition-all duration-300`;
         }
 
-        // Reset button and status back to normal after 3.5 seconds
+        // Reset button back to normal after 4 seconds
         setTimeout(() => {
           btnGenStock.innerHTML = `
             <svg class="w-5 h-5 text-slate-950 flex-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1218,10 +1260,37 @@ function setupStockAndPhotoHandlers() {
             </svg>
             <span>Generate Stock Needed</span>
           `;
-          scanMessage.classList.add("hidden");
-        }, 3500);
+          if (scanMessage) scanMessage.classList.add("hidden");
+        }, 4000);
 
-      }, 1500);
+      } catch (error) {
+        console.error("AI Analysis Network Error:", error);
+
+        // Error state — re-enable button and show error
+        btnGenStock.disabled = false;
+        btnGenStock.classList.remove("opacity-70");
+        btnGenStock.innerHTML = `
+          <svg class="w-5 h-5 text-slate-950 flex-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <span>Analysis Failed — Tap to Retry</span>
+        `;
+        if (scanMessage) {
+          scanMessage.innerText = "Network error or server unavailable. Ensure the server is running and your API key is set.";
+          scanMessage.className = "text-xs text-center text-rose-400 font-semibold mt-2.5 block";
+        }
+
+        // Reset button after 5 seconds
+        setTimeout(() => {
+          btnGenStock.innerHTML = `
+            <svg class="w-5 h-5 text-slate-950 flex-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L3 15.187m6 5.813a2 2 0 01-2-2m2 2a2 2 0 002-2m-2 2h-.059M21 3c.969 0 1.371 1.24.588 1.81l-3.96 2.876a1 1 0 00-.374 1.13l1.513 4.654c.299.922-.755 1.688-1.538 1.118l-3.96-2.876a1 1 0 00-1.18 0l-3.96 2.876c-.783.57-1.837-.196-1.538-1.118l1.513-4.654a1 1 0 00-.374-1.13L3.588 4.81C2.805 4.24 3.207 3 4.176 3H21z"/>
+            </svg>
+            <span>Generate Stock Needed</span>
+          `;
+          if (scanMessage) scanMessage.classList.add("hidden");
+        }, 5000);
+      }
     });
   }
 
