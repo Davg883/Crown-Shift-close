@@ -47,10 +47,14 @@ app.post("/api/analyze-fridge", async (req, res) => {
   - GLARE OVERRIDE DIRECTIVE: Clear glass (Desperados) and reflective white necks (Stella) create high-contrast bright spots. Treat these solid lines of light reflections as FULL rows (Restock: 0) instead of empty background spaces.`;
     } else if (fridgeType === "wine" || fridgeType === "fridge3") {
       fridgeProfile = `
-  FRIDGE TYPE: Wine & Premium (Wine/Premium Fridge)
-  - Virtual boundary grid:
-    * Top/Middle Shelves contain: BrewDog Punk IPA, Smirnoff Ice, WKD Blue, Thatchers Haze, Jägermeister (Max Capacity per row: 6)
-    * Bottom Shelf contains single-serve mini wines: White Wine (Mini), Rosé Wine (Mini), Red Wine (Mini) (Max Capacity per row: 8)`;
+        FRIDGE PROFILE MATRIX: Wine & Premium Craft Items (High-Angle Capture).
+        Note: The source image for this fridge is shot from a top-down, high-angle perspective. 
+        
+        CRITICAL SHADOW CALIBRATION OVERRIDES:
+        - TOP & MIDDLE SHELF HEADSPACE: Because of the steep downward angle, the black fridge frame and upper shelf dividers cast intense, deep shadows over the tops of the cans (Punk IPA) and bottle caps (Smirnoff Ice, WKD, Thatchers Haze, Jägermeister). DO NOT interpret this dark upper headspace as an empty shelf or a gap. 
+        - Look strictly down at the vertical bodies of the cans and bottles. If you see a solid wall of colorful labels running left-to-right, the row is FULL. Set Restock Needed to 0.
+        - BOTTOM SHELF (MINI WINES): These small single-serve wine bottles are tightly lined up against the front glass. A solid row of white, pink, and dark red liquids means the shelf is full (Restock Needed: 0). Only flag a restock value if a physical gap reveals the empty white grid shelf mat underneath.
+    `;
     }
 
     const prompt = `
