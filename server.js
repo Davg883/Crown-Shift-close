@@ -37,52 +37,40 @@ app.post("/api/analyze-fridge", async (req, res) => {
 
     // System instruction defining maximum capacities matching the fridge profiles
     const prompt = `
-      You are an expert inventory manager for a premium British hotel pub called The Crown Hotel. Analyze this bar fridge image carefully.
-      
-      Your goal is to determine how many items are missing/needed to restock the fridge to its maximum capacity.
-      
-      Here are the maximum capacities for each item type in a fully stocked fridge:
-      Mixers & Softs Fridge ("mixer"):
-      - "Thatchers Zero": Max Capacity = 6
-      - "Doom Bar Zero": Max Capacity = 6
-      - "Old Mout Cider": Max Capacity = 6
-      - "Diet Coke": Max Capacity = 10
-      - "Coca-Cola": Max Capacity = 10
-      - "Fanta": Max Capacity = 6
-      - "Schweppes Tonic/Slimline": Max Capacity = 12
-      - "Monster Energy (Original)": Max Capacity = 6
-      - "Monster Energy (Punch)": Max Capacity = 6
-      - "Monster Energy (Mango)": Max Capacity = 6
-      - "Monster Energy (Ultra)": Max Capacity = 6
+  You are an advanced industrial inventory vision engine trained specifically for commercial bar setups. 
+  Your task is to analyze the provided pub fridge image ("${fridgeType}") and output a precise restock JSON data payload.
+  
+  CRITICAL VISION DIRECTIVES FOR 2D IMAGES:
+  1. DO NOT try to count individual bottles going backward into the dark shelves. 
+  2. Instead, look EXCLUSIVELY at the FRONT ROW of each shelf partition to determine row fullness.
+  3. Look for "GAPING HOLES" (empty floor mat space) or "TIPPED OVER / MISSING" silhouettes in the front row line.
 
-      Beer & Cider Fridge ("beer"):
-      - "VK (Blue)": Max Capacity = 8
-      - "VK (Ice)": Max Capacity = 8
-      - "VK (Orange)": Max Capacity = 8
-      - "Stella Artois": Max Capacity = 8
-      - "Birra Moretti": Max Capacity = 8
-      - "Desperados": Max Capacity = 8
-      - "Old Speckled Hen": Max Capacity = 6
-      - "Magners": Max Capacity = 6
+  EXECUTE EXPLICIT DECISION TREE FOR EACH ITEM:
+  - FULL ROW CONDITION: If a specific brand's designated section shows bottles packed tightly left-to-right all the way to the front glass, set Restock Needed to 0. (Even if you cannot see behind them, assume depth is full).
+  - MINOR GAP CONDITION: If you spot exactly 1 or 2 dark spaces/missing gaps in that brand's front line, set Restock Needed to 1 or 2 respectively.
+  - SIGNIFICANT EMPTY CONDITION: If the entire brand row block is completely missing or bare, set Restock Needed to the absolute Maximum Capacity for that row.
 
-      Inventory Counting Rules:
-      1. ONLY analyze items for the fridge type specified: "${fridgeType}".
-      2. For each item in the list above:
-         - Estimate the number of bottles/cans CURRENTLY PRESENT (Visible in the front row + depth behind them).
-         - Calculate: Restock Needed = Max Capacity - Present Count.
-         - If a shelf row looks full/packed and you see bottles lining up to the front, the Present Count equals Max Capacity, so Restock Needed is 0.
-         - Do NOT return the number of visible bottles as the restock count. For example, if you see 3 bottles of Birra Moretti and the row is half-empty, the Present Count is 3, meaning Restock Needed is 5 (8 - 3 = 5). If the Birra Moretti row is completely full, Restock Needed is 0.
-         - If an item is completely missing from the fridge, Restock Needed is its full Max Capacity.
-      
-      Return ONLY a clean, valid JSON object mapping the exact string keys above to the integer quantity needed. Do not wrap the JSON in markdown code blocks or backticks.
-      
-      Example output:
-      {
-        "Schweppes Tonic/Slimline": 0,
-        "Diet Coke": 2,
-        "Birra Moretti": 5
-      }
-    `;
+  VIRTUAL BOUNDARY GRID PROFILES:
+  
+  If fridgeType === "mixer" (Top Fridge):
+  - Top Left Shelf: Thatchers Zero & Doom Bar Zero (Max Capacity: 6 per row). If bottles line the front edge, restock is 0.
+  - Top Center/Right: Old Mout, Cokes, Fantas (Max Capacity: 8 per row).
+  - Bottom Shelf: Soft Mixers & Monster Cans. Look at the bright can labels. If lines are continuous, restock is 0.
+
+  If fridgeType === "beer" (Lower Fridge):
+  - Left Side (Top & Bottom): Bright blue/clear VK Alcopops & Stella Artois (Max Capacity: 8 per row). Rows appear nearly full in baseline images; expect restock to be 0 or 1.
+  - Right Side (Top & Bottom): Dark glass bottles (Moretti, Desperados, Old Speckled Hen, Magners). Look for gaps against the internal light. If row silhouette is solid, restock is 0.
+
+  STRICT JSON OUTPUT FORMAT:
+  Return ONLY a clean, valid raw JSON object mapping these exact string keys mapped to their integer quantities. Do not wrap in markdown \`\`\`json blocks.
+  
+  Expected Output Format:
+  {
+    "Thatchers Zero": 0,
+    "Diet Coke": 0,
+    "Birra Moretti": 0
+  }
+`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent([prompt, imagePart]);
