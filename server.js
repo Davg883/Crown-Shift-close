@@ -60,6 +60,8 @@ app.post("/api/analyze-fridge", async (req, res) => {
   If fridgeType === "beer" (Lower Fridge):
   - Left Side (Top & Bottom): Bright blue/clear VK Alcopops & Stella Artois (Max Capacity: 8 per row). Rows appear nearly full in baseline images; expect restock to be 0 or 1.
   - Right Side (Top & Bottom): Dark glass bottles (Moretti, Desperados, Old Speckled Hen, Magners). Look for gaps against the internal light. If row silhouette is solid, restock is 0.
+  - STELLA ARTOIS GLARE OVERRIDE: Note that Stella Artois bottles have distinct, bright white foil necks and white body labels. Do not misinterpret these bright white clusters or light reflections as empty gaps. The Stella rows in our baseline testing images are full; force its default calculation to 0 unless a blatant dark floor-mat gap is seen.
+  - DESPERADOS GLASS OVERRIDE: Desperados bottles are made of clear glass with vibrant yellow/orange labels that catch the internal fridge light intensely. High-contrast glare in this section is caused by full glass reflection, NOT an empty shelf. Treat the solid row of reflections as a full row (Restock: 0).
 
   STRICT JSON OUTPUT FORMAT:
   Return ONLY a clean, valid raw JSON object mapping these exact string keys mapped to their integer quantities. Do not wrap in markdown \`\`\`json blocks.
