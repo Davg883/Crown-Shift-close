@@ -1,8 +1,5 @@
 const { GoogleGenAI } = require("@google/genai");
 
-// Initialize the Gemini client using environment variable
-const aiEngineInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 module.exports = async function handler(req, res) {
   // Set CORS headers for Vercel deployment
   res.setHeader("Access-Control-Allow-Credentials", true);
@@ -33,6 +30,9 @@ module.exports = async function handler(req, res) {
 
     // Clean base64 string metadata header if present
     const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+
+    // Initialize the Gemini client inside the handler to prevent top-level module load failures on Vercel
+    const aiEngineInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const imagePart = {
       inlineData: {
@@ -103,7 +103,8 @@ module.exports = async function handler(req, res) {
         }
     });
 
-    const rawResponseText = inferenceResponse.text.trim();
+    const responseTextText = inferenceResponse.text || "";
+    const rawResponseText = responseTextText.trim();
 
     console.log(`[AI Analysis] Fridge: ${fridgeType} | Raw response:`, rawResponseText);
 

@@ -11,14 +11,14 @@ app.use(express.static(__dirname));
 // Parse JSON bodies up to 10MB for base64 image payloads
 app.use(express.json({ limit: "10mb" }));
 
-// Initialize the Gemini client using the environment variable
-const aiEngineInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 // POST /api/analyze-fridge — AI Visual Analysis Endpoint
 app.post("/api/analyze-fridge", async (req, res) => {
   try {
     const { image, fridgeType, currentUiKeys } = req.body;
     if (!image) return res.status(400).json({ error: "No image data provided" });
+
+    // Initialize the Gemini client inside the handler to prevent top-level module load failures
+    const aiEngineInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     // Verify API key is configured
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "your_actual_gemini_api_key_here") {
@@ -97,7 +97,8 @@ app.post("/api/analyze-fridge", async (req, res) => {
         }
     });
 
-    const rawResponseText = inferenceResponse.text.trim();
+    const responseTextText = inferenceResponse.text || "";
+    const rawResponseText = responseTextText.trim();
 
     console.log(`[AI Analysis] Fridge: ${fridgeType} | Raw response:`, rawResponseText);
 
