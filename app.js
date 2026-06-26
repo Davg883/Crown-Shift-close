@@ -1195,8 +1195,8 @@ function setupStockAndPhotoHandlers() {
         let hasError = false;
 
         results.forEach(result => {
-          if (result.data.success && result.data.stock) {
-            const stock = result.data.stock;
+          if (result.data && !result.data.error) {
+            const stock = result.data;
             Object.entries(stock).forEach(([itemName, count]) => {
               restockCounts[itemName] = count;
             });
@@ -1215,7 +1215,7 @@ function setupStockAndPhotoHandlers() {
             }
           } else {
             hasError = true;
-            const errMsg = result.data.error || "Unknown error";
+            const errMsg = (result.data && result.data.error) || "Unknown error";
             const displayType = result.type === "fridge3" ? "wine & premium" : result.type;
             shortagesText += `- ${displayType} fridge: Analysis failed (${errMsg})\n`;
           }

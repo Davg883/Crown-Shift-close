@@ -107,17 +107,14 @@ app.post("/api/analyze-fridge", async (req, res) => {
         processedCleanJson = rawResponseText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
     }
 
-    // Ensure the JSON has a matching closing brace if it was truncated by the stopSequence
+    // Hardened cutoff closure: Ensure JSON closes cleanly if stop sequence truncated the terminal brace
     if (!processedCleanJson.endsWith("}")) {
-        processedCleanJson = processedCleanJson.trim();
-        if (!processedCleanJson.endsWith("}")) {
-            processedCleanJson += "\n}";
-        }
+        processedCleanJson += "\n}";
     }
 
     try {
         const stockData = JSON.parse(processedCleanJson);
-        res.json({ success: true, stock: stockData });
+        res.json(stockData);
     } catch (parseError) {
         console.error("JSON Clean Stream Parsing Error. Content received:", rawResponseText);
         res.status(500).json({ error: "Failed to parse hardened token output matrix" });
