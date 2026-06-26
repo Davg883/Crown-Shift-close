@@ -1169,7 +1169,16 @@ function setupStockAndPhotoHandlers() {
                 currentUiKeys: mixerKeys
               }),
               timeout: 45000
-            }).then(r => r.json()).then(data => ({ type: "mixer", data }))
+            })
+            .then(async r => {
+              if (!r.ok) {
+                const text = await r.text().catch(() => "");
+                return { error: `Server error (${r.status}): ${text.substring(0, 80)}` };
+              }
+              return r.json().catch(() => ({ error: "Invalid JSON response" }));
+            })
+            .then(data => ({ type: "mixer", data }))
+            .catch(err => ({ type: "mixer", data: { error: err.message || "Network error" } }))
           );
         }
         if (beerImg) {
@@ -1184,7 +1193,16 @@ function setupStockAndPhotoHandlers() {
                 currentUiKeys: beerKeys
               }),
               timeout: 45000
-            }).then(r => r.json()).then(data => ({ type: "beer", data }))
+            })
+            .then(async r => {
+              if (!r.ok) {
+                const text = await r.text().catch(() => "");
+                return { error: `Server error (${r.status}): ${text.substring(0, 80)}` };
+              }
+              return r.json().catch(() => ({ error: "Invalid JSON response" }));
+            })
+            .then(data => ({ type: "beer", data }))
+            .catch(err => ({ type: "beer", data: { error: err.message || "Network error" } }))
           );
         }
         if (wineImg) {
@@ -1199,7 +1217,16 @@ function setupStockAndPhotoHandlers() {
                 currentUiKeys: wineKeys
               }),
               timeout: 45000
-            }).then(r => r.json()).then(data => ({ type: "fridge3", data }))
+            })
+            .then(async r => {
+              if (!r.ok) {
+                const text = await r.text().catch(() => "");
+                return { error: `Server error (${r.status}): ${text.substring(0, 80)}` };
+              }
+              return r.json().catch(() => ({ error: "Invalid JSON response" }));
+            })
+            .then(data => ({ type: "fridge3", data }))
+            .catch(err => ({ type: "fridge3", data: { error: err.message || "Network error" } }))
           );
         }
 
@@ -1436,9 +1463,9 @@ function bindImageUploader(inputEl, imgEl, delBtnEl, storageKey) {
     reader.onload = function(event) {
       const img = new Image();
       img.onload = function() {
-        // Compress and downsample image using canvas to max 1024px dimension
+        // Compress and downsample image using canvas to max 800px dimension
         const canvas = document.createElement("canvas");
-        const maxDim = 1024; // max width/height for fast web/WhatsApp uploads
+        const maxDim = 800; // max width/height for fast web/WhatsApp uploads and low-latency API calls
         let width = img.width;
         let height = img.height;
         
