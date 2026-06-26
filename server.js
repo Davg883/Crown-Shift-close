@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +12,7 @@ app.use(express.static(__dirname));
 app.use(express.json({ limit: "10mb" }));
 
 // Initialize the Gemini client using the environment variable
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const aiEngineInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // POST /api/analyze-fridge — AI Visual Analysis Endpoint
 app.post("/api/analyze-fridge", async (req, res) => {
@@ -77,17 +77,51 @@ app.post("/api/analyze-fridge", async (req, res) => {
   Return ONLY a clean, raw JSON object mapping these exact keys to their calculated integer restock values. Do not use markdown backticks or enclose in \`\`\`json blocks.
 `;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent([prompt, imagePart]);
-    const responseText = result.response.text().trim();
+    const inferenceResponse = await aiEngineInstance.models.generateContent({
+        model: "gemini-2.5-flash", // Ready for swapping to custom fine-tuned model endpoints
+        contents: [
+            {
+                inlineData: {
+                    mimeType: "image/jpeg",
+                    data: base64Data
+                }
+            },
+            prompt
+        ],
+        config: {
+            // Core Architectural Tuning Parameter Injections
+            mediaResolution: "MEDIA_RESOLUTION_HIGH",
+            thinkingLevel: "MINIMAL",
+            stopSequences: ["\n}"],
+            temperature: 0.0 // Ensure strict deterministic outputs
+        }
+    });
 
-    console.log(`[AI Analysis] Fridge: ${fridgeType} | Raw response:`, responseText);
+    const rawResponseText = inferenceResponse.text.trim();
 
-    // Safely parse out JSON response payload (strip any accidental markdown fences)
-    const cleaned = responseText.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
-    const stockData = JSON.parse(cleaned);
+    console.log(`[AI Analysis] Fridge: ${fridgeType} | Raw response:`, rawResponseText);
 
-    res.json({ success: true, stock: stockData });
+    // Safeguard check: If the model natively outputted backticks before cutting off, handle it gracefully, otherwise parse directly.
+    let processedCleanJson = rawResponseText;
+    if (rawResponseText.includes("```")) {
+        processedCleanJson = rawResponseText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+    }
+
+    // Ensure the JSON has a matching closing brace if it was truncated by the stopSequence
+    if (!processedCleanJson.endsWith("}")) {
+        processedCleanJson = processedCleanJson.trim();
+        if (!processedCleanJson.endsWith("}")) {
+            processedCleanJson += "\n}";
+        }
+    }
+
+    try {
+        const stockData = JSON.parse(processedCleanJson);
+        res.json({ success: true, stock: stockData });
+    } catch (parseError) {
+        console.error("JSON Clean Stream Parsing Error. Content received:", rawResponseText);
+        res.status(500).json({ error: "Failed to parse hardened token output matrix" });
+    }
   } catch (error) {
     console.error("AI Analysis Engine Error:", error.message || error);
     res.status(500).json({ error: "Failed to process visual analysis. " + (error.message || "") });
