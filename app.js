@@ -1040,6 +1040,22 @@ window.addEventListener("DOMContentLoaded", () => {
   setupStockAndPhotoHandlers();
 });
 
+// Helper function to fetch resources with a custom client-side abort timeout
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 45000 } = options;
+  
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal  
+  });
+  clearTimeout(id);
+  
+  return response;
+}
+
 // Photo uploaders, quick restock grid & notes helper functions
 function setupStockAndPhotoHandlers() {
   const inputTop = document.getElementById("input-top-fridge");
@@ -1144,42 +1160,45 @@ function setupStockAndPhotoHandlers() {
         if (topImg) {
           const mixerKeys = RESTOCK_ITEMS_CONFIG.find(c => c.category === "Mixers & Softs")?.items || [];
           requests.push(
-            fetch("/api/analyze-fridge", {
+            fetchWithTimeout("/api/analyze-fridge", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ 
                 image: topImg, 
                 fridgeType: "mixer",
                 currentUiKeys: mixerKeys
-              })
+              }),
+              timeout: 45000
             }).then(r => r.json()).then(data => ({ type: "mixer", data }))
           );
         }
         if (beerImg) {
           const beerKeys = RESTOCK_ITEMS_CONFIG.find(c => c.category === "Bottled Beers & Alcopops")?.items || [];
           requests.push(
-            fetch("/api/analyze-fridge", {
+            fetchWithTimeout("/api/analyze-fridge", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ 
                 image: beerImg, 
                 fridgeType: "beer",
                 currentUiKeys: beerKeys
-              })
+              }),
+              timeout: 45000
             }).then(r => r.json()).then(data => ({ type: "beer", data }))
           );
         }
         if (wineImg) {
           const wineKeys = RESTOCK_ITEMS_CONFIG.find(c => c.category === "Wine & Premium")?.items || [];
           requests.push(
-            fetch("/api/analyze-fridge", {
+            fetchWithTimeout("/api/analyze-fridge", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ 
                 image: wineImg, 
                 fridgeType: "fridge3",
                 currentUiKeys: wineKeys
-              })
+              }),
+              timeout: 45000
             }).then(r => r.json()).then(data => ({ type: "fridge3", data }))
           );
         }
