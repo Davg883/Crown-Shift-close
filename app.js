@@ -1042,7 +1042,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Helper function to fetch resources with a custom client-side abort timeout
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 45000 } = options;
+  const { timeout = 90000 } = options;
   
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
@@ -1168,7 +1168,7 @@ function setupStockAndPhotoHandlers() {
                 fridgeType: "mixer",
                 currentUiKeys: mixerKeys
               }),
-              timeout: 45000
+              timeout: 90000
             })
             .then(async r => {
               if (!r.ok) {
@@ -1192,7 +1192,7 @@ function setupStockAndPhotoHandlers() {
                 fridgeType: "beer",
                 currentUiKeys: beerKeys
               }),
-              timeout: 45000
+              timeout: 90000
             })
             .then(async r => {
               if (!r.ok) {
@@ -1216,7 +1216,7 @@ function setupStockAndPhotoHandlers() {
                 fridgeType: "fridge3",
                 currentUiKeys: wineKeys
               }),
-              timeout: 45000
+              timeout: 90000
             })
             .then(async r => {
               if (!r.ok) {
